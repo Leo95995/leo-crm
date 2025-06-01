@@ -1,0 +1,41 @@
+@startuml LeoCRM_Architecture
+
+actor User
+
+cloud "Hetzner Cloud VM" as VM {
+  
+  ' === Frontend ===
+  package "Frontend (React)" {
+    [React App]
+  }
+
+  ' === Backend ===
+  package "Backend (Express)" {
+    [Express API]
+    [JWT Auth Middleware]
+    [Role Middleware]
+  }
+
+  ' === Database ===
+  database "MongoDB" as DB
+
+  node "NGINX (Reverse Proxy)" as NGINX
+}
+
+' Gitlab
+node "GitLab CI/CD" as CICD
+
+' === Flussi principali ===
+User --> NGINX : HTTPS Request
+NGINX .down.> [React App] : Serve static frontend
+User --> [React App] : UI Interaction
+[React App] .up.> NGINX : API calls (fetch)
+NGINX --> [Express API] : Proxy API requests
+
+[Express API] --> [JWT Auth Middleware] : Check token (if protected)
+[Express API] --> [Role Middleware] : Check role access
+[Express API] --> DB : Query / Update data
+
+CICD --> VM : Auto-deploy (GitLab Runner)
+
+@enduml

@@ -1,0 +1,38 @@
+services:
+  nginx:
+    build:
+      context: ./frontend  # perché il Dockerfile con build+nginx è qui
+      dockerfile: Dockerfile
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+    # :ro alla fine dei volumi sta appunto per read only o sola lettura.
+      - ./conf/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt/live/leolab.dev:/etc/letsencrypt/live/leolab.dev:ro
+      - /etc/letsencrypt/archive/leolab.dev:/etc/letsencrypt/archive/leolab.dev:ro
+
+    depends_on:
+      - backend
+      - kuma
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    expose:
+      - "3000"
+    env_file:
+      - ./backend/.env
+    restart: always
+
+  kuma:
+    image: louislam/uptime-kuma:1
+    container_name: kuma
+    expose:
+      - "3001"
+    restart: always
