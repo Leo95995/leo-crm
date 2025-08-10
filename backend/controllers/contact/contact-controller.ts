@@ -67,10 +67,10 @@ const getAllContacts = async (
         }
 
         const contactsFiltered = await Contact.find(searchQuery)
+          .populate("user_id")
           .sort(sortOptions)
           .skip(skip)
           .limit(limit);
-
         const results = await Contact.find(searchQuery).countDocuments();
 
         res.status(200).json({
@@ -80,7 +80,7 @@ const getAllContacts = async (
         });
         return;
       } else {
-        const contacts = await Contact.find().skip(skip).limit(limit);
+        const contacts = await Contact.find().populate('user_id').skip(skip).limit(limit);
         const totalContacts = await Contact.find().countDocuments();
         if (contacts?.length) {
           res.status(200).json({ contacts, total: totalContacts });
